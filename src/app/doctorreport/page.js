@@ -40,11 +40,16 @@ export default function DoctorReport() {
   }, [router]);
 
   const handlePatientView = (patientId) => {
-    // Navigate to the "patientviewreport" page, passing the patientId in the URL
+    // Log the patient ID for debugging purposes
+    console.log("Navigating to patient report for ID:", patientId);
+  
+    // Store the patient ID in localStorage
     localStorage.setItem("selectedPatientId", patientId);
+  
+    // Navigate to the "patientviewreport" page
     router.push(`/patientviewreport/${patientId}`);
   };
-
+  
   if (loading) return <p>Loading doctor record...</p>;
   if (error) return <p>{error}</p>;
 

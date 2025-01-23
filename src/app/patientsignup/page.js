@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
+
 
 export default function PatientSignup() {
   const [formData, setFormData] = useState({
@@ -15,6 +17,7 @@ export default function PatientSignup() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter(); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,6 +45,7 @@ export default function PatientSignup() {
           historyOfIllness: "",
           password: "",
         });
+        router.push("/patientlogin");
       }
     } catch (err) {
       setError(

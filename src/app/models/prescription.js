@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-
-
 const prescriptionSchema = new mongoose.Schema({
   careToBeTaken: {
     type: String,
@@ -9,17 +7,15 @@ const prescriptionSchema = new mongoose.Schema({
   },
   medicines: {
     type: String,
-    required: false,
   },
   consultationId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Consultation',  // Reference to the Consultation model
+    type: String,
     required: true,
+    unique: true, // Ensures one prescription per consultation
   },
-}, {
-  timestamps: true, // Adds createdAt and updatedAt fields
-});
+}, { timestamps: true });
 
-const Prescription = mongoose.model('Prescription', prescriptionSchema);
+// Use existing model if it exists, otherwise create a new one
+const Prescription = mongoose.models.Prescription || mongoose.model('Prescription', prescriptionSchema);
 
 module.exports = Prescription;

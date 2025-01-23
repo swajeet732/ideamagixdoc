@@ -18,17 +18,18 @@ const ConsultationPage = () => {
     patientEmail: '',
     patientPhone: '',
     age: '',
-    doctorId: '', // Initialize doctorId as an empty string
+    doctorId: '',
   });
 
+  const [upiId, setUpiId] = useState(''); // Store UPI ID
+  const [loading, setLoading] = useState(false); // Spinner loading state
+  const [showUpiModal, setShowUpiModal] = useState(false); // Modal visibility state
   const router = useRouter();
 
-  // Load patient details and doctorId from localStorage on component mount
   useEffect(() => {
     const storedPatientData = JSON.parse(localStorage.getItem('patientData'));
-    const storedDoctorId = localStorage.getItem('doctorId'); // Retrieve doctorId from localStorage
+    const storedDoctorId = localStorage.getItem('doctorId');
     console.log(storedDoctorId);
-    
 
     if (storedPatientData) {
       setFormData((prevData) => ({
@@ -37,10 +38,10 @@ const ConsultationPage = () => {
         patientEmail: storedPatientData.email,
         patientPhone: storedPatientData.phone,
         age: storedPatientData.age,
-        doctorId: storedDoctorId, // Set doctorId from localStorage
+        doctorId: storedDoctorId,
       }));
     }
-  }, []); // Dependency array is empty, runs only on initial render
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,30 +53,40 @@ const ConsultationPage = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleUpiChange = (e) => {
+    setUpiId(e.target.value); // Update UPI ID state
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if required patient data exists
     const storedPatientData = JSON.parse(localStorage.getItem('patientData'));
     if (!storedPatientData || !storedPatientData.name || !storedPatientData.email || !storedPatientData.phone || !storedPatientData.age) {
       alert('Patient details are missing or incomplete!');
       return;
     }
 
+    // Show UPI modal
+    setShowUpiModal(true);
+  };
+
+  const handleUpiSubmit = async () => {
+    setLoading(true); // Start loading spinner
+
     try {
-      // Create the request body
       const response = await axios.post('/api/consultation', {
-        patientName: storedPatientData.name,
-        patientEmail: storedPatientData.email,
-        patientPhone: storedPatientData.phone,
-        age: storedPatientData.age,
+        patientName: formData.patientName,
+        patientEmail: formData.patientEmail,
+        patientPhone: formData.patientPhone,
+        age: formData.age,
         currentIllness: formData.currentIllness,
         recentSurgery: formData.recentSurgery,
         surgeryTimeSpan: formData.surgeryTimeSpan,
         diabetics: formData.diabeticsStatus === 'Yes' ? 'diabetics' : 'non-diabetics',
         allergies: formData.allergies,
         others: formData.others,
-        doctorId: formData.doctorId, // Use doctorId from the formData state
+        doctorId: formData.doctorId,
+        upiId, // Include UPI ID in the request
       });
 
       // Handle success response
@@ -98,10 +109,16 @@ const ConsultationPage = () => {
         age: '',
         doctorId: '',
       });
+
+      // Navigate to patient dashboard
+      router.push('/patientdashboard');
     } catch (error) {
       // Handle error
       alert('Error submitting consultation data');
       console.error(error);
+    } finally {
+      setLoading(false); // Stop loading spinner
+      setShowUpiModal(false); // Close UPI modal
     }
   };
 
@@ -225,6 +242,41 @@ const ConsultationPage = () => {
         {/* Submit Button */}
         <button type="submit" className="w-full py-3 bg-blue-500 text-white rounded-md">Submit</button>
       </form>
+
+      {/* UPI Modal */}
+      {showUpiModal && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-600 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Enter UPI ID</h2>
+            <input
+              type="text"
+              value={upiId}
+              onChange={handleUpiChange}
+              className="w-full p-3 border border-gray-300 rounded-md mb-4"
+              placeholder="Enter UPI ID"
+            />
+            <div className="flex justify-between">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-md"
+                onClick={() => setShowUpiModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                onClick={handleUpiSubmit}
+                disabled={loading} // Disable if loading
+              >
+                {loading ? (
+                  <span className="spinner-border spinner-border-sm"></span>
+                ) : (
+                  'Submit'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
